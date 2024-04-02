@@ -8,6 +8,7 @@ const AllTodoList = () => {
   const dispatch = useDispatch();
   const [editText, setEditText] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [error, setError] = useState("");
 
   const handleDelete = (id) => {
     dispatch(deleteTodo(id));
@@ -16,16 +17,30 @@ const AllTodoList = () => {
   const handleEdit = (id, text) => {
     setEditText(text);
     setEditingId(id);
+    setError("");
   };
 
   const handleSave = (id) => {
-    dispatch(
-      updateTodo({
-        id: id,
-        text: editText,
-      })
-    );
-    setEditingId(null);
+    const trimmedText = editText.trim();
+    if (trimmedText === "") {
+      setError("Todo text cannot be blank.");
+    } else if (!/\S/.test(trimmedText)) {
+      setError("Todo text cannot consist only of spaces.");
+    } else {
+      dispatch(
+        updateTodo({
+          id: id,
+          text: trimmedText,
+        })
+      );
+      setEditingId(null);
+      setError("");
+    }
+  };
+
+  const handleChange = (e) => {
+    setEditText(e.target.value);
+    setError(""); // Clear error message when input changes
   };
 
   return (
@@ -34,11 +49,7 @@ const AllTodoList = () => {
         <div key={todo.id} className="todo-item">
           {editingId === todo.id ? (
             <>
-              <input
-                type="text"
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-              />
+              <input type="text" value={editText} onChange={handleChange} />
               <div className="button-group">
                 <button
                   className="save-button"
@@ -67,6 +78,7 @@ const AllTodoList = () => {
               </div>
             </>
           )}
+          {error && <div className="error-message">{error}</div>}
         </div>
       ))}
     </div>
